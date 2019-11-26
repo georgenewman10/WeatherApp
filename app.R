@@ -3,11 +3,19 @@ library(shinythemes)
 library(dplyr)
 library(readr)
 library(tidyverse)
+library(data.table)
+library(plotly)
 
 # Load data
 #data_description <- read_csv("")
-data_description <- c('test', 'test')
-weather_data <- read_csv("1941635.csv")
+weather_data <- read_csv("data.csv")
+data_description <- c('PRCP', 'TMAX',"TMIN")
+
+# create data frame
+#setDT(data)
+
+# columns
+#choices <- c("PRCP","TMAX","TMIN")
 
 # Define UI
 ui <- fluidPage(theme = shinytheme("lumen"),
@@ -22,7 +30,7 @@ ui <- fluidPage(theme = shinytheme("lumen"),
                                 choices = c("Temperature", 'Precipitation'),
                                 selected = "Temperature"),
                     
-                    # Select date range to be plotted
+                    # Select DATE range to be plotted
                     dateRangeInput("date", strong("Date range"), start = "1978-01-01", end = "2019-11-07",
                                    min = "1978-01-01", max = "2019-11-07"),
                     
@@ -57,47 +65,52 @@ server <- function(input, output) {
   # Subset data
   selected_data <- reactive({
     req(input$date)
-    validate(need(!is.na(input$date[1]) & !is.na(input$date[2]), "Error: Please provide both a start and an end date."))
-    validate(need(input$date[1] < input$date[2], "Error: Start date should be earlier than end date."))
+    validate(need(!is.na(input$date[1]) & !is.na(input$date[2]), "Error: Please provide both a start and an end DATE."))
+    validate(need(input$date[1] < input$date[2], "Error: Start DATE should be earlier than end DATE."))
     #weather_data %>%
       if(input$type == 'Temperature'){
         new_data = weather_data %>% 
           select('DATE', 'TMAX')
-        }
-      
-      
-      #filter(
-      #  type == input$type,
-        #type == case_when(input$type == "Temperature" ~ 'TMAX',
-        #                  input$type == 'Precipitation' ~ 'ACMH'),
-        
-      #  type = input$TMAX,
-        
-        
-      #  date > as.POSIXct(input$date[1]) & date < as.POSIXct(input$date[2]
-        #))
+        #new_data = new_data[input$DATE==input$date[1],] 
+      }
+      else if(input$type == 'Precipitation'){
+        new_data = weather_data %>% 
+            select('DATE', 'PRCP')
+        #new_data = new_data[input$DATE==input$date[1],] 
+      }
   })
-  
-  
   
   # Create scatterplot object the plotOutput function is expecting
   output$lineplot <- renderPlot({
     color = "#434343"
     par(mar = c(4, 4, 1, 1))
-    plot(x = selected_data()$date, y = selected_data()$close, type = "l",
-         xlab = "Date", ylab = "Trend index", col = color, fg = color, col.lab = color, col.axis = color)
-    # Display only if smoother is checked
-    if(input$smoother){
-      smooth_curve <- lowess(x = as.numeric(selected_data()$date), y = selected_data()$close, f = input$f)
-      lines(smooth_curve, col = "#E6553A", lwd = 3)
+    if(input$type == 'Temperature') {
+        plot(x = selected_data()$DATE, y = selected_data()$TMAX, type = "l",
+             xlab = "Date", ylab = "Trend index", col = color, fg = color, col.lab = color, col.axis = color)
+        # Display only if smoother is checked
+        if(input$smoother){
+            smooth_curve <- lowess(x = as.numeric(selected_data()$DATE), y = selected_data()$TMAX, f = input$f)
+            lines(smooth_curve, col = "#E6553A", lwd = 3)
+        }
     }
+    else if(input$type == 'Precipitation') {
+        plot(x = selected_data()$DATE, y = selected_data()$PRCP, type = "l",
+             xlab = "Date", ylab = "Trend index", col = color, fg = color, col.lab = color, col.axis = color)
+        # Display only if smoother is checked
+        if(input$smoother){
+            smooth_curve <- lowess(x = as.numeric(selected_data()$DATE), y = selected_data()$PRCP, f = input$f)
+            lines(smooth_curve, col = "#E6553A", lwd = 3)
+        }
+    }
+
   })
   
+  
   # Pull in description of trend
-  output$desc <- renderText({
-    trend_text <- filter(data_description, type == input$type) %>% pull(text)
-    paste(trend_text, "The index is set to 1.0 on January 1, 2004 and is calculated only for US search traffic.")
-  })
+  #output$desc <- renderText({
+  #  trend_text <- filter(data_description, type == input$type) %>% pull(text)
+  #  paste(trend_text, "The index is set to 1.0 on January 1, 2004 and is calculated only for US search traffic.")
+  #})
 }
 
 # Create Shiny object
