@@ -60,8 +60,6 @@ ui <- fluidPage(theme = shinytheme("lumen"),
 # Define server function
 server <- function(input, output) {
   
-  
-  
   # Subset data
   selected_data <- reactive({
     req(input$date)
@@ -90,6 +88,8 @@ server <- function(input, output) {
         # Display only if smoother is checked
         if(input$smoother){
             smooth_curve <- lowess(x = as.numeric(selected_data()$DATE), y = selected_data()$TMAX, f = input$f)
+            print(smooth_curve$y[1])
+            print(smooth_curve$y[length(smooth_curve$y)])
             lines(smooth_curve, col = "#E6553A", lwd = 3)
         }
     }
@@ -99,6 +99,7 @@ server <- function(input, output) {
         # Display only if smoother is checked
         if(input$smoother){
             smooth_curve <- lowess(x = as.numeric(selected_data()$DATE), y = selected_data()$PRCP, f = input$f)
+            print(smooth_curve$y[1])
             lines(smooth_curve, col = "#E6553A", lwd = 3)
         }
     }
