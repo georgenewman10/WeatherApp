@@ -11,6 +11,11 @@ library(plotly)
 weather_data <- read_csv("data.csv")
 data_description <- c('PRCP', 'TMAX',"TMIN")
 
+weather_data <- weather_data %>% 
+  mutate(TDiff = TMAX - TMIN)
+
+
+
 # create data frame
 #setDT(data)
 
@@ -27,12 +32,12 @@ ui <- fluidPage(theme = shinytheme("lumen"),
                     selectInput(inputId = "type", 
                                 label = strong("Data Category"),
                                 #choices = unique(weather_data$type),
-                                choices = c("Temperature", 'Precipitation'),
+                                choices = c("Temperature", 'Precipitation', 'Differential'),
                                 selected = "Temperature"),
                     
                     # Select DATE range to be plotted
-                    dateRangeInput("date", strong("Date range"), start = "1978-01-01", end = "2019-11-07",
-                                   min = "1978-01-01", max = "2019-11-07"),
+                    dateRangeInput("date", strong("Date range"), start = "1938-06-01", end = "2019-11-10",
+                                   min = "1938-06-01", max = "2019-11-17"),
                     
                     # Select whether to overlay smooth trend line
                     checkboxInput(inputId = "smoother", label = strong("Overlay smooth trend line"), value = FALSE),
@@ -48,9 +53,7 @@ ui <- fluidPage(theme = shinytheme("lumen"),
                   
                   # Output: Description, lineplot, and reference
                   mainPanel(
-                    plotOutput(outputId = "lineplot", height = "300px"),
-                    textOutput(outputId = "desc"),
-                    tags$a(href = "https://www.google.com/finance/domestic_trends", "Source: Google Domestic Trends", target = "_blank")
+                    plotOutput(outputId = "lineplot", height = "300px")
                   )
                 )
 )
@@ -65,26 +68,20 @@ server <- function(input, output) {
     req(input$date)
     validate(need(!is.na(input$date[1]) & !is.na(input$date[2]), "Error: Please provide both a start and an end DATE."))
     validate(need(input$date[1] < input$date[2], "Error: Start DATE should be earlier than end DATE."))
-    #weather_data %>%
-      if(input$type == 'Temperature'){
-        new_data = weather_data %>% 
-          select('DATE', 'TMAX')
-        #new_data = new_data[input$DATE==input$date[1],] 
-      }
-      else if(input$type == 'Precipitation'){
-        new_data = weather_data %>% 
-            select('DATE', 'PRCP')
-        #new_data = new_data[input$DATE==input$date[1],] 
-      }
+    
+    test_new_data <- weather_data %>% 
+      select('DATE', 'TMAX', 'TMIN', 'PRCP', 'TDiff') %>% 
+      filter(DATE >= input$date[1] & DATE <= input$date[2])
   })
   
   # Create scatterplot object the plotOutput function is expecting
   output$lineplot <- renderPlot({
     color = "#434343"
-    par(mar = c(4, 4, 1, 1))
+    #par(mar = c(4, 4, 1, 1))
+    
     if(input$type == 'Temperature') {
         plot(x = selected_data()$DATE, y = selected_data()$TMAX, type = "l",
-             xlab = "Date", ylab = "Trend index", col = color, fg = color, col.lab = color, col.axis = color)
+             xlab = "Date", ylab = 'Temperature', col = color, fg = color, col.lab = color, col.axis = color)
         # Display only if smoother is checked
         if(input$smoother){
             smooth_curve <- lowess(x = as.numeric(selected_data()$DATE), y = selected_data()$TMAX, f = input$f)
@@ -93,9 +90,10 @@ server <- function(input, output) {
             lines(smooth_curve, col = "#E6553A", lwd = 3)
         }
     }
+    
     else if(input$type == 'Precipitation') {
         plot(x = selected_data()$DATE, y = selected_data()$PRCP, type = "l",
-             xlab = "Date", ylab = "Trend index", col = color, fg = color, col.lab = color, col.axis = color)
+             xlab = "Date", ylab = 'Precipitation', col = color, fg = color, col.lab = color, col.axis = color)
         # Display only if smoother is checked
         if(input$smoother){
             smooth_curve <- lowess(x = as.numeric(selected_data()$DATE), y = selected_data()$PRCP, f = input$f)
@@ -103,15 +101,18 @@ server <- function(input, output) {
             lines(smooth_curve, col = "#E6553A", lwd = 3)
         }
     }
-
+    
+    else if(input$type == 'Differential') {
+      plot(x = selected_data()$DATE, y = selected_data()$TDiff, type = "l",
+        xlab = "Date", ylab = 'Differential', col = color, fg = color, col.lab = color, col.axis = color)
+      if(input$smoother){
+        smooth_curve <- lowess(x = as.numeric(selected_data()$DATE), y = selected_data()$TDiff, f = input$f)
+        print(smooth_curve$y[1])
+        lines(smooth_curve, col = "#E6553A", lwd = 3)
+      }
+    }
+    
   })
-  
-  
-  # Pull in description of trend
-  #output$desc <- renderText({
-  #  trend_text <- filter(data_description, type == input$type) %>% pull(text)
-  #  paste(trend_text, "The index is set to 1.0 on January 1, 2004 and is calculated only for US search traffic.")
-  #})
 }
 
 # Create Shiny object
