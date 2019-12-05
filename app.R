@@ -87,10 +87,12 @@ server <- function(input, output) {
     
     if(input$type == 'Temperature') {
     
-      full_title <- paste("Temperature Patterns in Austin between", input$date[1], "and", input$date[2])
+      date_1 <- format(as.Date(input$date[1], format = "%Y-%m-%d"), "%m-%d-%Y")
+      date_2 <- format(as.Date(input$date[2], format = "%Y-%m-%d"), "%m-%d-%Y")
+      full_title <- paste("Temperature Patterns in Austin between", date_1, "and", date_2)
       color = "#039403"
       
-      plot(x = as.Date(data$DATE), y = data$TMAX, type = "l", xlab = "Date", ylab = 'Temperature', 
+      plot(x = as.Date(data$DATE), y = data$TMAX, type = "l", xlab = "Date", ylab = 'Temperature (Degrees Fahrenheit)', 
            col = color, fg = graph_color, col.lab = graph_color, col.axis = graph_color, main = full_title)
       
         # Display only if smoother is checked
@@ -104,10 +106,12 @@ server <- function(input, output) {
     
     else if(input$type == 'Precipitation') {
       
-      full_title <- paste("Precipitation in Austin between", input$date[1], "and", input$date[2])
+      date_1 <- format(as.Date(input$date[1], format = "%Y-%m-%d"), "%m-%d-%Y")
+      date_2 <- format(as.Date(input$date[2], format = "%Y-%m-%d"), "%m-%d-%Y")
+      full_title <- paste("Precipitation in Austin between", date_1, "and", date_2)
       color = "#0273cf"
       
-      plot(x = as.Date(data$DATE), y = data$PRCP, type = "l", xlab = "Date", ylab = 'Precipitation', 
+      plot(x = as.Date(data$DATE), y = data$PRCP, type = "l", xlab = "Date", ylab = 'Precipitation (Inches)', 
            col = color, fg = graph_color, col.lab = graph_color, col.axis = graph_color, main = full_title)
       
         # Display only if smoother is checked
@@ -121,10 +125,12 @@ server <- function(input, output) {
     
     else if(input$type == 'Differential') {
       
-      full_title <- paste("Temperature Differential in Austin between", input$date[1], "and", input$date[2])
+      date_1 <- format(as.Date(input$date[1], format = "%Y-%m-%d"), "%m-%d-%Y")
+      date_2 <- format(as.Date(input$date[2], format = "%Y-%m-%d"), "%m-%d-%Y")
+      full_title <- paste("Temperature Differential in Austin between", date_1, "and", date_2)
       color = "#ba020e"
       
-      plot(x = as.Date(data$DATE), y = data$TDiff, type = "l", xlab = "Date", ylab = 'Temperature Differential', 
+      plot(x = as.Date(data$DATE), y = data$TDiff, type = "l", xlab = "Date", ylab = 'Temperature Differential (Degrees Fahreheit)', 
            col = color, fg = graph_color, col.lab = graph_color, col.axis = graph_color, main = full_title)
       
       if(input$smoother){
