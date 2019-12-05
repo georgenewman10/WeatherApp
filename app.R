@@ -80,14 +80,18 @@ server <- function(input, output) {
   
   # Create scatterplot object the plotOutput function is expecting
   output$lineplot <- renderPlot({
-    color = "#434343"
   
     data <- selected_data()
     
+    graph_color = "#434343"
+    
     if(input$type == 'Temperature') {
     
+      full_title <- paste("Temperature Patterns in Austin between", input$date[1], "and", input$date[2])
+      color = "#039403"
+      
       plot(x = as.Date(data$DATE), y = data$TMAX, type = "l", xlab = "Date", ylab = 'Temperature', 
-           col = color, fg = color, col.lab = color, col.axis = color)
+           col = color, fg = graph_color, col.lab = graph_color, col.axis = graph_color, main = full_title)
       
         # Display only if smoother is checked
         if(input$smoother){
@@ -99,9 +103,12 @@ server <- function(input, output) {
     }
     
     else if(input$type == 'Precipitation') {
-
+      
+      full_title <- paste("Precipitation in Austin between", input$date[1], "and", input$date[2])
+      color = "#0273cf"
+      
       plot(x = as.Date(data$DATE), y = data$PRCP, type = "l", xlab = "Date", ylab = 'Precipitation', 
-           col = color, fg = color, col.lab = color, col.axis = color)
+           col = color, fg = graph_color, col.lab = graph_color, col.axis = graph_color, main = full_title)
       
         # Display only if smoother is checked
       if(input$smoother){
@@ -113,14 +120,18 @@ server <- function(input, output) {
     }
     
     else if(input$type == 'Differential') {
+      
+      full_title <- paste("Temperature Differential in Austin between", input$date[1], "and", input$date[2])
+      color = "#ba020e"
+      
       plot(x = as.Date(data$DATE), y = data$TDiff, type = "l", xlab = "Date", ylab = 'Temperature Differential', 
-           col = color, fg = color, col.lab = color, col.axis = color)
+           col = color, fg = graph_color, col.lab = graph_color, col.axis = graph_color, main = full_title)
       
       if(input$smoother){
         smooth_curve <- lowess(x = as.Date(data$DATE), y = data$TDiff, f = input$f)
         print(smooth_curve$y[1])
         print(smooth_curve$y[length(smooth_curve$y)])
-        lines(smooth_curve, col = "#E6553A", lwd = 3)
+        lines(smooth_curve, col = "#000000", lwd = 3)
       }
     }
     
