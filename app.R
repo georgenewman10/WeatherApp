@@ -86,6 +86,11 @@ server <- function(input, output) {
     graph_color = "#434343"
     
     if(input$type == 'Temperature') {
+      
+      print('Max Temperature')
+      print(max(data$TMAX))
+      print('Year')
+      print(data$DATE[which.max(data$TMAX)])
     
       date_1 <- format(as.Date(input$date[1], format = "%Y-%m-%d"), "%m-%d-%Y")
       date_2 <- format(as.Date(input$date[2], format = "%Y-%m-%d"), "%m-%d-%Y")
@@ -106,6 +111,11 @@ server <- function(input, output) {
     
     else if(input$type == 'Precipitation') {
       
+      print('Max Precipitation')
+      print(max(data$PRCP))
+      print('Year')
+      print(data$DATE[which.max(data$PRCP)])
+      
       date_1 <- format(as.Date(input$date[1], format = "%Y-%m-%d"), "%m-%d-%Y")
       date_2 <- format(as.Date(input$date[2], format = "%Y-%m-%d"), "%m-%d-%Y")
       full_title <- paste("Precipitation in Austin between", date_1, "and", date_2)
@@ -124,6 +134,11 @@ server <- function(input, output) {
     }
     
     else if(input$type == 'Differential') {
+      
+      print('Max Differential')
+      print(max(data$TDiff))
+      print('Year')
+      print(data$DATE[which.max(data$TDiff)])
       
       date_1 <- format(as.Date(input$date[1], format = "%Y-%m-%d"), "%m-%d-%Y")
       date_2 <- format(as.Date(input$date[2], format = "%Y-%m-%d"), "%m-%d-%Y")
