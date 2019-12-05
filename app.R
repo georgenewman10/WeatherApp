@@ -14,7 +14,10 @@ data_description <- c('PRCP', 'TMAX',"TMIN")
 weather_data <- weather_data %>% 
   mutate(TDiff = TMAX - TMIN)
 
+weather_data %>% 
+  mutate(DATE = as.Date(weather_data$DATE))
 
+weather_data$DATE <- format(as.Date(weather_data$DATE, format = "%m/%d/%Y"), "%Y-%m-%d")
 
 # create data frame
 #setDT(data)
@@ -36,8 +39,9 @@ ui <- fluidPage(theme = shinytheme("lumen"),
                                 selected = "Temperature"),
                     
                     # Select DATE range to be plotted
-                    dateRangeInput("date", strong("Date range"), start = "1938-06-01", end = "2019-11-10",
-                                   min = "1938-06-01", max = "2019-11-17"),
+                    dateRangeInput("date", strong("Date range"), start = "1938-06-01", 
+                                   end = "2019-11-10",
+                                   min = "1938-06-01", max = "2019-11-10"),
                     
                     # Select whether to overlay smooth trend line
                     checkboxInput(inputId = "smoother", label = strong("Overlay smooth trend line"), value = FALSE),
@@ -69,7 +73,7 @@ server <- function(input, output) {
     validate(need(!is.na(input$date[1]) & !is.na(input$date[2]), "Error: Please provide both a start and an end DATE."))
     validate(need(input$date[1] < input$date[2], "Error: Start DATE should be earlier than end DATE."))
     
-    test_new_data <- weather_data %>% 
+    data <- weather_data %>% 
       select('DATE', 'TMAX', 'TMIN', 'PRCP', 'TDiff') %>% 
       filter(DATE >= input$date[1] & DATE <= input$date[2])
   })
@@ -77,14 +81,17 @@ server <- function(input, output) {
   # Create scatterplot object the plotOutput function is expecting
   output$lineplot <- renderPlot({
     color = "#434343"
-    #par(mar = c(4, 4, 1, 1))
+  
+    data <- selected_data()
     
     if(input$type == 'Temperature') {
-        plot(x = selected_data()$DATE, y = selected_data()$TMAX, type = "l",
-             xlab = "Date", ylab = 'Temperature', col = color, fg = color, col.lab = color, col.axis = color)
+    
+      plot(x = as.Date(data$DATE), y = data$TMAX, type = "l", xlab = "Date", ylab = 'Temperature', 
+           col = color, fg = color, col.lab = color, col.axis = color)
+      
         # Display only if smoother is checked
         if(input$smoother){
-            smooth_curve <- lowess(x = as.numeric(selected_data()$DATE), y = selected_data()$TMAX, f = input$f)
+            smooth_curve <- lowess(x = as.Date(data$DATE), y = data$TMAX, f = input$f)
             print(smooth_curve$y[1])
             print(smooth_curve$y[length(smooth_curve$y)])
             lines(smooth_curve, col = "#E6553A", lwd = 3)
@@ -92,22 +99,27 @@ server <- function(input, output) {
     }
     
     else if(input$type == 'Precipitation') {
-        plot(x = selected_data()$DATE, y = selected_data()$PRCP, type = "l",
-             xlab = "Date", ylab = 'Precipitation', col = color, fg = color, col.lab = color, col.axis = color)
+
+      plot(x = as.Date(data$DATE), y = data$PRCP, type = "l", xlab = "Date", ylab = 'Precipitation', 
+           col = color, fg = color, col.lab = color, col.axis = color)
+      
         # Display only if smoother is checked
-        if(input$smoother){
-            smooth_curve <- lowess(x = as.numeric(selected_data()$DATE), y = selected_data()$PRCP, f = input$f)
-            print(smooth_curve$y[1])
-            lines(smooth_curve, col = "#E6553A", lwd = 3)
+      if(input$smoother){
+        smooth_curve <- lowess(x = as.Date(data$DATE), y = data$PRCP, f = input$f)
+        print(smooth_curve$y[1])
+        print(smooth_curve$y[length(smooth_curve$y)])
+        lines(smooth_curve, col = "#E6553A", lwd = 3)
         }
     }
     
     else if(input$type == 'Differential') {
-      plot(x = selected_data()$DATE, y = selected_data()$TDiff, type = "l",
-        xlab = "Date", ylab = 'Differential', col = color, fg = color, col.lab = color, col.axis = color)
+      plot(x = as.Date(data$DATE), y = data$TDiff, type = "l", xlab = "Date", ylab = 'Temperature Differential', 
+           col = color, fg = color, col.lab = color, col.axis = color)
+      
       if(input$smoother){
-        smooth_curve <- lowess(x = as.numeric(selected_data()$DATE), y = selected_data()$TDiff, f = input$f)
+        smooth_curve <- lowess(x = as.Date(data$DATE), y = data$TDiff, f = input$f)
         print(smooth_curve$y[1])
+        print(smooth_curve$y[length(smooth_curve$y)])
         lines(smooth_curve, col = "#E6553A", lwd = 3)
       }
     }
